@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lotto-pwa-v1';
+const CACHE_NAME = 'lotto-pwa-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,8 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
+  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
   'https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap'
 ];
 
