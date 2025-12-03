@@ -403,23 +403,29 @@
 
   let editingRecordId = null;
 
-  function loadState() {
-    const raw = localStorage.getItem('lottoState');
-    if (raw) {
-      try {
-        state = JSON.parse(raw);
-      } catch (e) {
-        console.error('load error', e);
-      }
+function loadState() {
+  const raw = localStorage.getItem('lottoState');
+  if (raw) {
+    try {
+      state = JSON.parse(raw);
+    } catch (e) {
+      console.error('load error', e);
     }
-    if (!state.nextPersonId) {
-      state.nextPersonId = (state.persons?.length || 0) + 1;
-    }
-    if (!state.nextRecordId) {
-      state.nextRecordId = (state.records?.length || 0) + 1;
-    }
-    cleanupOldRecords();
   }
+  if (!state.nextPersonId) {
+    state.nextPersonId = (state.persons?.length || 0) + 1;
+  }
+  if (!state.nextRecordId) {
+    state.nextRecordId = (state.records?.length || 0) + 1;
+  }
+  // เพิ่มบรรทัดนี้เข้าไป
+  (state.records || []).forEach(r => {
+    if (typeof r.paid === 'undefined') r.paid = false;
+  });
+
+  cleanupOldRecords(); // ถ้ามีบรรทัดนี้อยู่แล้วก็ปล่อยไว้เหมือนเดิม
+}
+
 
   function saveState() {
     localStorage.setItem('lottoState', JSON.stringify(state));
@@ -560,42 +566,41 @@
 
   // --------- Records ----------
   function renderRecordList() {
-    const tbody = document.getElementById('record-list');
-    tbody.innerHTML = '';
-    if (!state.records.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="text-muted">ยังไม่มีรายการเลข</td></tr>';
-      return;
-    }
-    const filterId = parseInt(document.getElementById('filter-person-id').value || '0', 10);
-    const sorted = [...state.records].sort((a, b) => b.id - a.id);
-
-    sorted.forEach(r => {
-      if (filterId && r.personId !== filterId) return;
-      const p = state.persons.find(p => p.id === r.personId);
-      const stake = Number(r.stake || 0);
-      const rate  = Number(r.payoutRate || 0);
-      const potential = stake && rate ? stake * rate : null;
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${p ? p.name : '-'}</td>
-        <td>${r.drawDate || '-'}</td>
-        <td>${r.number}</td>
-        <td>${digitsLabel(r.digits)}</td>
-        <td>${r.betType}</td>
-        <td>${stake ? formatMoney(stake) : '-'}</td>
-        <td>${rate ? formatMoney(rate) : '-'}</td>
-        <td>${potential ? formatMoney(potential) : '-'}</td>
-        <td>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button>
-            <button class="btn btn-outline-primary" onclick="startEditRecord(${r.id})">แก้ไข</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+  const tbody = document.getElementById('record-list');
+  tbody.innerHTML = '';
+  if (!state.records.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted">ยังไม่มีรายการเลข</td></tr>';
+    return;
   }
+  const filterId = parseInt(document.getElementById('filter-person-id').value || '0', 10);
+  const sorted = [...state.records].sort((a, b) => b.id - a.id);
+
+  sorted.forEach(r => {
+    if (filterId && r.personId !== filterId) return;
+    const p = state.persons.find(p => p.id === r.personId);
+    const stake = Number(r.stake || 0);
+
+    const statusBadge = r.paid
+      ? `<span class="badge bg-success pill" onclick="togglePaid(${r.id})">จ่ายแล้ว</span>`
+      : `<span class="badge bg-danger pill" onclick="togglePaid(${r.id})">ยังไม่จ่าย</span>`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p ? p.name : '-'}</td>
+      <td>${r.drawDate || '-'}</td>
+      <td>${stake ? formatMoney(stake) + ' บ.' : '-'}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button>
+          <button class="btn btn-outline-primary" onclick="startEditRecord(${r.id})">แก้ไข</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 
   function addRecord(e) {
     e.preventDefault();
@@ -650,17 +655,18 @@
       document.getElementById('record-cancel-edit').style.display = 'none';
     } else {
       // เพิ่มใหม่
-      state.records.push({
-        id: state.nextRecordId++,
-        personId,
-        drawDate,
-        number,
-        digits,
-        betType,
-        stake,
-        payoutRate,
-        remark
-      });
+    state.records.push({
+      id: state.nextRecordId++,
+      personId,
+      drawDate,
+      number,
+      digits,
+      betType,
+      stake,
+      payoutRate,
+      remark,
+      paid: false
+    });
     }
 
     saveState();
@@ -672,6 +678,14 @@
     document.getElementById('record-stake').value = '';
     document.getElementById('record-rate').value = '';
   }
+ 
+  function togglePaid(id) {
+    const r = state.records.find(x => x.id === id);
+    if (!r) return;
+    r.paid = !r.paid;
+    saveState();
+    renderRecordList();
+   }
 
   function startEditRecord(id) {
     const r = state.records.find(x => x.id === id);
@@ -865,4 +879,5 @@
 
 </body>
 </html>
+
 
