@@ -230,7 +230,13 @@
                 <label class="form-label">หมายเหตุเพิ่ม</label>
                 <input type="text" id="record-remark" class="form-control">
               </div>
-              <button type="submit" class="btn btn-success w-100 mt-2">บันทึกเลข</button>
+              <button type="submit" class="btn btn-success w-100 mt-2">
+                <span id="record-submit-text">บันทึกเลข</span>
+              </button>
+              <button type="button" class="btn btn-outline-danger w-100 mt-2" id="record-cancel-edit"
+                      onclick="cancelEditRecord()" style="display:none;">
+                ยกเลิกการแก้ไข
+              </button>
             </form>
             <button class="btn btn-outline-secondary w-100 mt-3" onclick="showSection('people')">
               กลับหน้าหลัก
@@ -245,7 +251,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h5 class="card-title mb-0">รายการล่าสุด</h5>
               <div class="small text-muted">
-                แตะ <span class="badge bg-secondary pill">สลิป</span> เพื่อดูใบสลิป
+                ปุ่ม <span class="badge bg-secondary pill">สลิป</span> สรุปทั้งโพย / <span class="badge bg-primary pill">แก้ไข</span> แก้รายการ
               </div>
             </div>
             <div class="mb-2">
@@ -264,7 +270,7 @@
                     <th>ราคา</th>
                     <th>อัตราจ่าย</th>
                     <th>รับสุทธิ</th>
-                    <th></th>
+                    <th>สลิป / แก้ไข</th>
                   </tr>
                 </thead>
                 <tbody id="record-list"></tbody>
@@ -338,7 +344,7 @@
                     <th>ราคา</th>
                     <th>อัตราจ่าย</th>
                     <th>รับสุทธิ</th>
-                    <th></th>
+                    <th>สลิป / แก้ไข</th>
                   </tr>
                 </thead>
                 <tbody id="check-result-list"></tbody>
@@ -398,6 +404,8 @@
     nextRecordId: 1
   };
 
+  let editingRecordId = null;
+
   function loadState() {
     const raw = localStorage.getItem('lottoState');
     if (raw) {
@@ -407,23 +415,44 @@
         console.error('load error', e);
       }
     }
-    // ป้องกันกรณี state เก่าไม่มีฟิลด์ nextId
     if (!state.nextPersonId) {
       state.nextPersonId = (state.persons?.length || 0) + 1;
     }
     if (!state.nextRecordId) {
       state.nextRecordId = (state.records?.length || 0) + 1;
     }
+    cleanupOldRecords();
   }
+
   function saveState() {
     localStorage.setItem('lottoState', JSON.stringify(state));
+  }
+
+  // ลบรายการที่เกิน 24 ชม. หลังจากงวดที่ระบุ
+  function cleanupOldRecords() {
+    const now = new Date();
+    let changed = false;
+    state.records = (state.records || []).filter(r => {
+      if (!r.drawDate) return true; // ถ้าไม่ใส่งวดวันที่ไว้ก็ไม่ลบ
+      const parts = r.drawDate.split('-');
+      if (parts.length !== 3) return true;
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      d.setDate(d.getDate() + 1); // +1 วัน = 24 ชม.
+      if (now > d) {
+        changed = true;
+        return false;
+      }
+      return true;
+    });
+    if (changed) {
+      saveState();
+    }
   }
 
   // --------- UI Helper ----------
   function showSection(name) {
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.getElementById('section-' + name).classList.add('active');
-    // sync nav radio
     const navId = 'nav-' + name;
     const nav = document.getElementById(navId);
     if (nav) nav.checked = true;
@@ -453,19 +482,20 @@
       const count = state.records.filter(r => r.personId === p.id).length;
       const li = document.createElement('li');
       li.className = 'list-group-item d-flex justify-content-between align-items-center';
-      li.style.cursor = 'pointer';
-      li.onclick = () => openPersonRecords(p.id);
+
       li.innerHTML = `
-        <div>
+        <div style="cursor:pointer" onclick="openPersonRecords(${p.id})">
           <strong>${p.name}</strong>
           ${p.note ? `<div class="small text-muted">${p.note}</div>` : ''}
         </div>
-        <span class="badge bg-primary pill">${count} รายการ</span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary pill">${count} รายการ</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="editPerson(${p.id}, event)">แก้ไข</button>
+        </div>
       `;
       ul.appendChild(li);
     });
 
-    // dropdowns
     const selRecord = document.getElementById('record-person-id');
     const selFilter = document.getElementById('filter-person-id');
     selRecord.innerHTML = '';
@@ -511,6 +541,20 @@
     alert('บันทึกชื่อเรียบร้อย');
   }
 
+  function editPerson(id, ev) {
+    if (ev) ev.stopPropagation();
+    const p = state.persons.find(x => x.id === id);
+    if (!p) return;
+    const newName = prompt('แก้ไขชื่อ', p.name);
+    if (!newName) return;
+    const newNote = prompt('แก้ไขหมายเหตุ (ถ้ามี)', p.note || '');
+    p.name = newName.trim();
+    p.note = (newNote || '').trim();
+    saveState();
+    renderPersonList();
+    renderRecordList();
+  }
+
   function openPersonRecords(personId) {
     document.getElementById('filter-person-id').value = String(personId);
     showSection('records');
@@ -545,7 +589,12 @@
         <td>${stake ? formatMoney(stake) : '-'}</td>
         <td>${rate ? formatMoney(rate) : '-'}</td>
         <td>${potential ? formatMoney(potential) : '-'}</td>
-        <td><button class="btn btn-sm btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button></td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button>
+            <button class="btn btn-outline-primary" onclick="startEditRecord(${r.id})">แก้ไข</button>
+          </div>
+        </td>
       `;
       tbody.appendChild(tr);
     });
@@ -586,17 +635,37 @@
     const stake = stakeVal ? Number(stakeVal) : null;
     const payoutRate = rateVal ? Number(rateVal) : null;
 
-    state.records.push({
-      id: state.nextRecordId++,
-      personId,
-      drawDate,
-      number,
-      digits,
-      betType,
-      stake,
-      payoutRate,
-      remark
-    });
+    if (editingRecordId) {
+      // แก้ไขของเดิม
+      const r = state.records.find(x => x.id === editingRecordId);
+      if (r) {
+        r.personId = personId;
+        r.drawDate = drawDate;
+        r.number = number;
+        r.digits = digits;
+        r.betType = betType;
+        r.stake = stake;
+        r.payoutRate = payoutRate;
+        r.remark = remark;
+      }
+      editingRecordId = null;
+      document.getElementById('record-submit-text').textContent = 'บันทึกเลข';
+      document.getElementById('record-cancel-edit').style.display = 'none';
+    } else {
+      // เพิ่มใหม่
+      state.records.push({
+        id: state.nextRecordId++,
+        personId,
+        drawDate,
+        number,
+        digits,
+        betType,
+        stake,
+        payoutRate,
+        remark
+      });
+    }
+
     saveState();
     renderRecordList();
     renderPersonList();
@@ -605,8 +674,35 @@
     document.getElementById('record-remark').value = '';
     document.getElementById('record-stake').value = '';
     document.getElementById('record-rate').value = '';
+  }
 
-    alert('บันทึกเลขเรียบร้อย');
+  function startEditRecord(id) {
+    const r = state.records.find(x => x.id === id);
+    if (!r) return;
+    editingRecordId = id;
+    document.getElementById('record-person-id').value = r.personId;
+    document.getElementById('record-date').value = r.drawDate || '';
+    document.getElementById('record-number').value = r.number;
+    document.getElementById('record-digits').value = String(r.digits);
+    document.getElementById('record-bettype').value = r.betType;
+    document.getElementById('record-stake').value = r.stake ?? '';
+    document.getElementById('record-rate').value = r.payoutRate ?? '';
+    document.getElementById('record-remark').value = r.remark || '';
+
+    document.getElementById('record-submit-text').textContent = 'บันทึกการแก้ไข';
+    document.getElementById('record-cancel-edit').style.display = 'block';
+
+    showSection('records');
+  }
+
+  function cancelEditRecord() {
+    editingRecordId = null;
+    document.getElementById('record-submit-text').textContent = 'บันทึกเลข';
+    document.getElementById('record-cancel-edit').style.display = 'none';
+    document.getElementById('record-number').value = '';
+    document.getElementById('record-remark').value = '';
+    document.getElementById('record-stake').value = '';
+    document.getElementById('record-rate').value = '';
   }
 
   // --------- Check Winners ----------
@@ -652,7 +748,12 @@
           <td>${stake ? formatMoney(stake) : '-'}</td>
           <td>${rate ? formatMoney(rate) : '-'}</td>
           <td>${potential ? formatMoney(potential) : '-'}</td>
-          <td><button class="btn btn-sm btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button></td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button>
+              <button class="btn btn-outline-primary" onclick="startEditRecord(${r.id})">แก้ไข</button>
+            </div>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -663,7 +764,7 @@
       (drawDate ? ` | งวดวันที่ ${drawDate}` : '');
   }
 
-  // --------- Slip ----------
+  // --------- Slip (สรุปทั้งโพยของคน + งวดเดียวกัน) ----------
   let slipModal;
   let currentSlipRecordId = null;
 
@@ -672,16 +773,39 @@
     if (!r) return;
     currentSlipRecordId = recordId;
     const p = state.persons.find(p => p.id === r.personId);
-    const stake = Number(r.stake || 0);
-    const rate  = Number(r.payoutRate || 0);
-    const potential = stake && rate ? stake * rate : null;
-    const now = new Date();
+
+    // รวมโพยทั้งหมดของคนเดียวกัน + งวดเดียวกัน
+    const sameDraw = state.records.filter(x =>
+      x.personId === r.personId &&
+      (r.drawDate ? x.drawDate === r.drawDate : true)
+    );
+
+    let totalStake = 0;
+    let totalPotential = 0;
 
     const slip = document.getElementById('slip-area');
+    const now = new Date();
+
+    let rowsHtml = '';
+    sameDraw.forEach(item => {
+      const stake = Number(item.stake || 0);
+      const rate  = Number(item.payoutRate || 0);
+      const potential = stake && rate ? stake * rate : 0;
+      if (stake) totalStake += stake;
+      if (potential) totalPotential += potential;
+
+      rowsHtml += `
+        <div class="slip-row">
+          <span>${item.number} (${digitsLabel(item.digits)}, ${item.betType})</span>
+          <span>${stake ? formatMoney(stake) + 'บ.' : '-'}</span>
+        </div>
+      `;
+    });
+
     slip.innerHTML = `
       <div class="slip-header">
         <div class="slip-header-title">สมุดจดหวยสายมู</div>
-        <div class="slip-header-sub">บันทึกเลขส่วนตัว · ไม่ใช่สลากกินแบ่ง</div>
+        <div class="slip-header-sub">โพยบันทึกเลขส่วนตัว · ไม่ใช่สลากกินแบ่ง</div>
       </div>
       <div class="slip-divider"></div>
       <div class="slip-row">
@@ -692,31 +816,21 @@
         <span class="slip-label">งวดวันที่</span>
         <span>${r.drawDate || '-'}</span>
       </div>
-      <div class="slip-row">
-        <span class="slip-label">เลขที่จด</span>
-        <span><strong>${r.number}</strong></span>
-      </div>
-      <div class="slip-row">
-        <span class="slip-label">รูปแบบเล่น</span>
-        <span>${digitsLabel(r.digits)} · ${r.betType}</span>
-      </div>
-      <div class="slip-row">
-        <span class="slip-label">ราคาเล่น</span>
-        <span>${stake ? formatMoney(stake) + ' บ.' : '-'}</span>
-      </div>
-      <div class="slip-row">
-        <span class="slip-label">อัตราจ่าย</span>
-        <span>${rate ? formatMoney(rate) + ' บ./1บ.' : '-'}</span>
-      </div>
       <div class="slip-divider"></div>
+      ${rowsHtml || '<div class="slip-row"><span>ไม่มีรายการเล่น</span><span></span></div>'}
+      <div class="slip-divider"></div>
+      <div class="slip-row">
+        <span class="slip-label">ยอดแทงรวม</span>
+        <span>${totalStake ? formatMoney(totalStake) + ' บ.' : '-'}</span>
+      </div>
       <div class="slip-row slip-total">
-        <span>ยอดรับหากถูก</span>
-        <span>${potential ? formatMoney(potential) + ' บ.' : '-'}</span>
+        <span>ยอดรับหากถูกทั้งหมด</span>
+        <span>${totalPotential ? formatMoney(totalPotential) + ' บ.' : '-'}</span>
       </div>
       ${r.remark ? `
         <div class="slip-divider"></div>
         <div class="slip-row">
-          <span class="slip-label">หมายเหตุ</span>
+          <span class="slip-label">หมายเหตุล่าสุด</span>
           <span>${r.remark}</span>
         </div>
       ` : ''}
