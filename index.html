@@ -5,31 +5,51 @@
   <title>สมุดจดหวยออฟไลน์</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="theme-color" content="#0d6efd">
+  <meta name="theme-color" content="#5b21ff">
   <link rel="manifest" href="manifest.webmanifest">
 
+  <!-- Bootstrap + Fonts -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
     body {
       font-family: "Prompt", sans-serif;
-      background: #f5f7fb;
+      background: radial-gradient(circle at top, #fde68a 0, #fdf2f8 35%, #e0f2fe 70%, #f9fafb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     .navbar {
-      background: linear-gradient(135deg, #4c6fff, #6b9dff);
+      background: linear-gradient(135deg, #5b21ff, #2563eb);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .navbar-brand {
       color: #fff !important;
-      font-weight: 500;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    .nav-link {
-      color: #e0e7ff !important;
+    .navbar-brand span.emoji {
+      font-size: 1.5rem;
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+    }
+    .nav-pills .btn {
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgba(15,23,42,0.25);
+    }
+    .nav-pills .btn-check:checked + .btn {
+      transform: translateY(1px);
     }
     .card {
-      border-radius: 1rem;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
-      border: none;
+      border-radius: 1.25rem;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+      border: 0;
+      backdrop-filter: blur(18px);
     }
     .section {
       display: none;
@@ -40,29 +60,93 @@
     .pill {
       border-radius: 999px;
     }
+    footer {
+      margin-top: auto;
+      padding: 0.75rem 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    /* ใบสลิปสายมู */
+    .slip-wrapper {
+      width: 260px;
+      margin: 0 auto;
+      background: #fefce8;
+      color: #111827;
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px dashed #f59e0b;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.13);
+      font-size: 0.78rem;
+    }
+    .slip-header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .slip-header-title {
+      font-weight: 600;
+    }
+    .slip-header-sub {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+    .slip-divider {
+      border-top: 1px dashed #d4b45a;
+      margin: 6px 0;
+    }
+    .slip-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .slip-label {
+      color: #6b7280;
+    }
+    .slip-total {
+      font-weight: 600;
+      color: #b45309;
+    }
+    .badge-mu {
+      background: linear-gradient(135deg,#f97316,#eab308);
+      color:#111827;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        border-radius: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg mb-3">
   <div class="container">
-    <a class="navbar-brand" href="#">📒 สมุดจดหวย</a>
-    <ul class="navbar-nav ms-auto">
-      <li class="nav-item">
-        <button class="btn btn-sm btn-light me-2" onclick="showSection('people')">รายชื่อ</button>
-      </li>
-      <li class="nav-item">
-        <button class="btn btn-sm btn-light me-2" onclick="showSection('records')">บันทึกเลข</button>
-      </li>
-      <li class="nav-item">
-        <button class="btn btn-sm btn-warning" onclick="showSection('check')">ตรวจรางวัล</button>
-      </li>
-    </ul>
+    <a class="navbar-brand" href="#" onclick="showSection('people')">
+      <span class="emoji">📒</span>
+      <span>สมุดจดหวย</span>
+    </a>
+
+    <div class="ms-auto d-flex gap-2 nav-pills">
+      <input type="radio" class="btn-check" name="navMode" id="nav-people" autocomplete="off" checked
+             onclick="showSection('people')">
+      <label class="btn btn-sm btn-light" for="nav-people">รายชื่อ</label>
+
+      <input type="radio" class="btn-check" name="navMode" id="nav-records" autocomplete="off"
+             onclick="showSection('records')">
+      <label class="btn btn-sm btn-light" for="nav-records">บันทึกเลข</label>
+
+      <input type="radio" class="btn-check" name="navMode" id="nav-check" autocomplete="off"
+             onclick="showSection('check')">
+      <label class="btn btn-sm btn-warning text-dark" for="nav-check">ตรวจรางวัล</label>
+    </div>
   </div>
 </nav>
 
-<div class="container mb-4">
+<div class="container mb-4 flex-grow-1">
 
-  <!-- ส่วนรายชื่อคน -->
+  <!-- SECTION: รายชื่อ -->
   <div id="section-people" class="section active">
     <div class="row g-4">
       <div class="col-md-6">
@@ -86,7 +170,7 @@
                 <label class="form-label">หมายเหตุ</label>
                 <input type="text" id="person-note" class="form-control">
               </div>
-              <button type="submit" class="btn btn-primary w-100">บันทึก</button>
+              <button type="submit" class="btn btn-primary w-100 mt-2">บันทึก</button>
             </form>
           </div>
         </div>
@@ -94,7 +178,7 @@
     </div>
   </div>
 
-  <!-- ส่วนบันทึกเลข -->
+  <!-- SECTION: บันทึกเลข -->
   <div id="section-records" class="section">
     <div class="row g-4">
       <div class="col-md-5">
@@ -112,13 +196,15 @@
               </div>
               <div class="mb-2">
                 <label class="form-label">เลข</label>
-                <input type="text" id="record-number" class="form-control" maxlength="3" placeholder="เช่น 23 หรือ 123" required>
+                <input type="text" id="record-number" class="form-control" maxlength="3"
+                       placeholder="เช่น 23 หรือ 123" required>
               </div>
               <div class="mb-2">
                 <label class="form-label">จำนวนหลัก</label>
                 <select id="record-digits" class="form-select">
-                  <option value="2">2 ตัว</option>
-                  <option value="3" selected>3 ตัว</option>
+                  <option value="2">เลข 2 ตัว</option>
+                  <option value="3" selected>เลข 3 ตัว</option>
+                  <option value="1">เลขวิ่ง 1 ตัว</option>
                 </select>
               </div>
               <div class="mb-2">
@@ -126,9 +212,19 @@
                 <select id="record-bettype" class="form-select">
                   <option value="บน">บน</option>
                   <option value="ล่าง">ล่าง</option>
+                  <option value="3ตัวตรง">3ตัวตรง</option>
+                  <option value="3ตัวหน้า">3ตัวหน้า</option>
                   <option value="โต๊ด">โต๊ด</option>
-                  <option value="อื่นๆ">อื่นๆ</option>
+                  <option value="วิ่ง">วิ่ง</option>
                 </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ราคาเล่น (บาท)</label>
+                <input type="number" id="record-stake" class="form-control" min="1" step="1" placeholder="เช่น 10">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">อัตราจ่าย (บาท / 1 บาทแทง)</label>
+                <input type="number" id="record-rate" class="form-control" min="1" step="1" placeholder="เช่น 60">
               </div>
               <div class="mb-2">
                 <label class="form-label">หมายเหตุเพิ่ม</label>
@@ -136,6 +232,9 @@
               </div>
               <button type="submit" class="btn btn-success w-100 mt-2">บันทึกเลข</button>
             </form>
+            <button class="btn btn-outline-secondary w-100 mt-3" onclick="showSection('people')">
+              กลับหน้าหลัก
+            </button>
           </div>
         </div>
       </div>
@@ -143,22 +242,29 @@
       <div class="col-md-7">
         <div class="card p-3">
           <div class="card-body">
-            <h5 class="card-title mb-3">รายการล่าสุด</h5>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">รายการล่าสุด</h5>
+              <div class="small text-muted">
+                แตะ <span class="badge bg-secondary pill">สลิป</span> เพื่อดูใบสลิป
+              </div>
+            </div>
             <div class="mb-2">
               <label class="form-label small">เลือกคนเพื่อกรอง</label>
-              <select id="filter-person-id" class="form-select form-select-sm" onchange="renderRecordList()">
-              </select>
+              <select id="filter-person-id" class="form-select form-select-sm" onchange="renderRecordList()"></select>
             </div>
-            <div class="table-responsive" style="max-height: 400px; overflow:auto;">
+            <div class="table-responsive" style="max-height: 420px; overflow:auto;">
               <table class="table table-sm align-middle">
                 <thead class="table-light">
                   <tr>
                     <th>ชื่อ</th>
                     <th>งวดวันที่</th>
                     <th>เลข</th>
-                    <th>หลัก</th>
+                    <th>เล่น</th>
                     <th>ประเภท</th>
-                    <th>หมายเหตุ</th>
+                    <th>ราคา</th>
+                    <th>อัตราจ่าย</th>
+                    <th>รับสุทธิ</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody id="record-list"></tbody>
@@ -170,7 +276,7 @@
     </div>
   </div>
 
-  <!-- ส่วนตรวจรางวัล -->
+  <!-- SECTION: ตรวจรางวัล -->
   <div id="section-check" class="section">
     <div class="row g-4">
       <div class="col-md-4">
@@ -184,13 +290,15 @@
               </div>
               <div class="mb-2">
                 <label class="form-label">เลขที่ออก</label>
-                <input type="text" id="check-number" class="form-control" maxlength="3" placeholder="เช่น 23 หรือ 123" required>
+                <input type="text" id="check-number" class="form-control" maxlength="3"
+                       placeholder="เช่น 23 หรือ 123" required>
               </div>
               <div class="mb-2">
                 <label class="form-label">จำนวนหลัก</label>
                 <select id="check-digits" class="form-select">
-                  <option value="2">2 ตัว</option>
-                  <option value="3" selected>3 ตัว</option>
+                  <option value="2">เลข 2 ตัว</option>
+                  <option value="3" selected>เลข 3 ตัว</option>
+                  <option value="1">เลขวิ่ง 1 ตัว</option>
                 </select>
               </div>
               <div class="mb-2">
@@ -198,12 +306,17 @@
                 <select id="check-bettype" class="form-select">
                   <option value="บน">บน</option>
                   <option value="ล่าง">ล่าง</option>
+                  <option value="3ตัวตรง">3ตัวตรง</option>
+                  <option value="3ตัวหน้า">3ตัวหน้า</option>
                   <option value="โต๊ด">โต๊ด</option>
-                  <option value="อื่นๆ">อื่นๆ</option>
+                  <option value="วิ่ง">วิ่ง</option>
                 </select>
               </div>
               <button type="submit" class="btn btn-primary w-100 mt-2">ค้นหาเลขที่ถูก</button>
             </form>
+            <button class="btn btn-outline-secondary w-100 mt-3" onclick="showSection('people')">
+              กลับหน้าหลัก
+            </button>
           </div>
         </div>
       </div>
@@ -211,18 +324,21 @@
       <div class="col-md-8">
         <div class="card p-3">
           <div class="card-body">
-            <h5 class="card-title mb-3">ผลการค้นหา</h5>
+            <h5 class="card-title mb-1">ผลการค้นหา</h5>
             <p class="small text-muted" id="check-summary"></p>
-            <div class="table-responsive" style="max-height: 400px; overflow:auto;">
+            <div class="table-responsive" style="max-height: 420px; overflow:auto;">
               <table class="table table-sm align-middle">
                 <thead class="table-light">
                   <tr>
                     <th>ชื่อ</th>
                     <th>งวดวันที่</th>
                     <th>เลข</th>
-                    <th>หลัก</th>
+                    <th>เล่น</th>
                     <th>ประเภท</th>
-                    <th>หมายเหตุ</th>
+                    <th>ราคา</th>
+                    <th>อัตราจ่าย</th>
+                    <th>รับสุทธิ</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody id="check-result-list"></tbody>
@@ -236,8 +352,36 @@
 
 </div>
 
+<footer>
+  © น้าแต๊ก – สมุดจดหวยสายมู
+</footer>
+
+<!-- Modal แสดงสลิป -->
+<div class="modal fade" id="slipModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0">
+      <div class="modal-header py-2">
+        <h6 class="modal-title">ใบสลิปบันทึกเลข</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+      </div>
+      <div class="modal-body d-flex flex-column align-items-center">
+        <div id="slip-area" class="slip-wrapper">
+          <!-- เนื้อหาใบสลิปจะถูกเติมด้วย JS -->
+        </div>
+        <button class="btn btn-sm btn-outline-primary mt-3" onclick="downloadSlipImage()">
+          บันทึกเป็นรูปเก็บไว้
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <script>
-  // --------- PWA Service Worker Registration ----------
+  // --------- PWA Service Worker ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(err => {
@@ -246,7 +390,7 @@
     });
   }
 
-  // --------- Data State & Storage ----------
+  // --------- Data State ----------
   let state = {
     persons: [],
     records: [],
@@ -258,43 +402,65 @@
     const raw = localStorage.getItem('lottoState');
     if (raw) {
       try {
-        const obj = JSON.parse(raw);
-        state = obj;
+        state = JSON.parse(raw);
       } catch (e) {
         console.error('load error', e);
       }
     }
+    // ป้องกันกรณี state เก่าไม่มีฟิลด์ nextId
+    if (!state.nextPersonId) {
+      state.nextPersonId = (state.persons?.length || 0) + 1;
+    }
+    if (!state.nextRecordId) {
+      state.nextRecordId = (state.records?.length || 0) + 1;
+    }
   }
-
   function saveState() {
     localStorage.setItem('lottoState', JSON.stringify(state));
   }
 
-  // --------- UI Switch Sections ----------
+  // --------- UI Helper ----------
   function showSection(name) {
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.getElementById('section-' + name).classList.add('active');
+    // sync nav radio
+    const navId = 'nav-' + name;
+    const nav = document.getElementById(navId);
+    if (nav) nav.checked = true;
+  }
+
+  function digitsLabel(d) {
+    if (d === 2) return 'เลข 2 ตัว';
+    if (d === 3) return 'เลข 3 ตัว';
+    if (d === 1) return 'เลขวิ่ง 1 ตัว';
+    return d;
+  }
+
+  function formatMoney(val) {
+    if (!val || isNaN(val)) return '-';
+    return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // --------- Persons ----------
   function renderPersonList() {
     const ul = document.getElementById('person-list');
     ul.innerHTML = '';
-    if (state.persons.length === 0) {
+    if (!state.persons.length) {
       ul.innerHTML = '<li class="list-group-item text-muted">ยังไม่มีรายชื่อ</li>';
       return;
     }
     state.persons.forEach(p => {
+      const count = state.records.filter(r => r.personId === p.id).length;
       const li = document.createElement('li');
       li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.style.cursor = 'pointer';
+      li.onclick = () => openPersonRecords(p.id);
       li.innerHTML = `
         <div>
           <strong>${p.name}</strong>
           ${p.note ? `<div class="small text-muted">${p.note}</div>` : ''}
         </div>
-        <span class="badge bg-primary pill">
-          ${state.records.filter(r => r.personId === p.id).length} รายการ
-        </span>
+        <span class="badge bg-primary pill">${count} รายการ</span>
       `;
       ul.appendChild(li);
     });
@@ -302,7 +468,8 @@
     // dropdowns
     const selRecord = document.getElementById('record-person-id');
     const selFilter = document.getElementById('filter-person-id');
-    [selRecord, selFilter].forEach(sel => { sel.innerHTML = ''; });
+    selRecord.innerHTML = '';
+    selFilter.innerHTML = '';
 
     const defaultOpt = document.createElement('option');
     defaultOpt.value = '';
@@ -332,7 +499,6 @@
     const name = document.getElementById('person-name').value.trim();
     const note = document.getElementById('person-note').value.trim();
     if (!name) return;
-
     state.persons.push({
       id: state.nextPersonId++,
       name,
@@ -345,30 +511,41 @@
     alert('บันทึกชื่อเรียบร้อย');
   }
 
+  function openPersonRecords(personId) {
+    document.getElementById('filter-person-id').value = String(personId);
+    showSection('records');
+    renderRecordList();
+  }
+
   // --------- Records ----------
   function renderRecordList() {
     const tbody = document.getElementById('record-list');
     tbody.innerHTML = '';
-    if (state.records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-muted">ยังไม่มีรายการเลข</td></tr>';
+    if (!state.records.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-muted">ยังไม่มีรายการเลข</td></tr>';
       return;
     }
     const filterId = parseInt(document.getElementById('filter-person-id').value || '0', 10);
+    const sorted = [...state.records].sort((a, b) => b.id - a.id);
 
-    // ล่าสุดมาก่อน
-    const records = [...state.records].sort((a, b) => b.id - a.id);
-
-    records.forEach(r => {
+    sorted.forEach(r => {
       if (filterId && r.personId !== filterId) return;
       const p = state.persons.find(p => p.id === r.personId);
+      const stake = Number(r.stake || 0);
+      const rate  = Number(r.payoutRate || 0);
+      const potential = stake && rate ? stake * rate : null;
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${p ? p.name : '-'}</td>
         <td>${r.drawDate || '-'}</td>
         <td>${r.number}</td>
-        <td>${r.digits}</td>
+        <td>${digitsLabel(r.digits)}</td>
         <td>${r.betType}</td>
-        <td>${r.remark || ''}</td>
+        <td>${stake ? formatMoney(stake) : '-'}</td>
+        <td>${rate ? formatMoney(rate) : '-'}</td>
+        <td>${potential ? formatMoney(potential) : '-'}</td>
+        <td><button class="btn btn-sm btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -381,6 +558,8 @@
     const number = document.getElementById('record-number').value.trim();
     const digits = parseInt(document.getElementById('record-digits').value, 10);
     const betType = document.getElementById('record-bettype').value;
+    const stakeVal = document.getElementById('record-stake').value;
+    const rateVal  = document.getElementById('record-rate').value;
     const remark = document.getElementById('record-remark').value.trim();
 
     if (!personId) {
@@ -392,13 +571,20 @@
       return;
     }
     if (digits === 2 && number.length !== 2) {
-      alert('เลือก 2 ตัว แต่กรอกไม่ครบ 2 หลัก');
+      alert('เลือกเลข 2 ตัว แต่กรอกไม่ครบ 2 หลัก');
       return;
     }
     if (digits === 3 && number.length !== 3) {
-      alert('เลือก 3 ตัว แต่กรอกไม่ครบ 3 หลัก');
+      alert('เลือกเลข 3 ตัว แต่กรอกไม่ครบ 3 หลัก');
       return;
     }
+    if (digits === 1 && number.length !== 1) {
+      alert('เลือกเลขวิ่ง 1 ตัว แต่กรอกไม่ครบ 1 หลัก');
+      return;
+    }
+
+    const stake = stakeVal ? Number(stakeVal) : null;
+    const payoutRate = rateVal ? Number(rateVal) : null;
 
     state.records.push({
       id: state.nextRecordId++,
@@ -407,14 +593,18 @@
       number,
       digits,
       betType,
+      stake,
+      payoutRate,
       remark
     });
     saveState();
     renderRecordList();
-    renderPersonList(); // update count
+    renderPersonList();
 
     document.getElementById('record-number').value = '';
     document.getElementById('record-remark').value = '';
+    document.getElementById('record-stake').value = '';
+    document.getElementById('record-rate').value = '';
 
     alert('บันทึกเลขเรียบร้อย');
   }
@@ -443,27 +633,117 @@
     const tbody = document.getElementById('check-result-list');
     tbody.innerHTML = '';
 
-    if (results.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-muted">ยังไม่มีใครถูกเลขนี้</td></tr>';
+    if (!results.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-muted">ยังไม่มีใครถูกเลขนี้</td></tr>';
     } else {
       results.forEach(r => {
         const p = state.persons.find(p => p.id === r.personId);
+        const stake = Number(r.stake || 0);
+        const rate  = Number(r.payoutRate || 0);
+        const potential = stake && rate ? stake * rate : null;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><span class="badge bg-success pill">${p ? p.name : '-'}</span></td>
+          <td><span class="badge badge-mu pill">${p ? p.name : '-'}</span></td>
           <td>${r.drawDate || '-'}</td>
           <td><strong>${r.number}</strong></td>
-          <td>${r.digits}</td>
+          <td>${digitsLabel(r.digits)}</td>
           <td>${r.betType}</td>
-          <td>${r.remark || ''}</td>
+          <td>${stake ? formatMoney(stake) : '-'}</td>
+          <td>${rate ? formatMoney(rate) : '-'}</td>
+          <td>${potential ? formatMoney(potential) : '-'}</td>
+          <td><button class="btn btn-sm btn-outline-secondary" onclick="showSlip(${r.id})">สลิป</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     const summary = document.getElementById('check-summary');
-    summary.textContent = `เลขที่ออก: ${number} (${digits} ตัว, ${betType}) ` +
-      (drawDate ? `งวดวันที่ ${drawDate}` : '');
+    summary.textContent = `เลขที่ออก: ${number} (${digitsLabel(digits)}, ประเภท ${betType})` +
+      (drawDate ? ` | งวดวันที่ ${drawDate}` : '');
+  }
+
+  // --------- Slip ----------
+  let slipModal;
+  let currentSlipRecordId = null;
+
+  function showSlip(recordId) {
+    const r = state.records.find(x => x.id === recordId);
+    if (!r) return;
+    currentSlipRecordId = recordId;
+    const p = state.persons.find(p => p.id === r.personId);
+    const stake = Number(r.stake || 0);
+    const rate  = Number(r.payoutRate || 0);
+    const potential = stake && rate ? stake * rate : null;
+    const now = new Date();
+
+    const slip = document.getElementById('slip-area');
+    slip.innerHTML = `
+      <div class="slip-header">
+        <div class="slip-header-title">สมุดจดหวยสายมู</div>
+        <div class="slip-header-sub">บันทึกเลขส่วนตัว · ไม่ใช่สลากกินแบ่ง</div>
+      </div>
+      <div class="slip-divider"></div>
+      <div class="slip-row">
+        <span class="slip-label">ชื่อลูกค้า</span>
+        <span>${p ? p.name : '-'}</span>
+      </div>
+      <div class="slip-row">
+        <span class="slip-label">งวดวันที่</span>
+        <span>${r.drawDate || '-'}</span>
+      </div>
+      <div class="slip-row">
+        <span class="slip-label">เลขที่จด</span>
+        <span><strong>${r.number}</strong></span>
+      </div>
+      <div class="slip-row">
+        <span class="slip-label">รูปแบบเล่น</span>
+        <span>${digitsLabel(r.digits)} · ${r.betType}</span>
+      </div>
+      <div class="slip-row">
+        <span class="slip-label">ราคาเล่น</span>
+        <span>${stake ? formatMoney(stake) + ' บ.' : '-'}</span>
+      </div>
+      <div class="slip-row">
+        <span class="slip-label">อัตราจ่าย</span>
+        <span>${rate ? formatMoney(rate) + ' บ./1บ.' : '-'}</span>
+      </div>
+      <div class="slip-divider"></div>
+      <div class="slip-row slip-total">
+        <span>ยอดรับหากถูก</span>
+        <span>${potential ? formatMoney(potential) + ' บ.' : '-'}</span>
+      </div>
+      ${r.remark ? `
+        <div class="slip-divider"></div>
+        <div class="slip-row">
+          <span class="slip-label">หมายเหตุ</span>
+          <span>${r.remark}</span>
+        </div>
+      ` : ''}
+      <div class="slip-divider"></div>
+      <div class="text-center" style="font-size:0.68rem; color:#6b7280;">
+        พิมพ์โดย น้าแต๊ก · ${now.toLocaleString('th-TH')}
+      </div>
+    `;
+
+    if (!slipModal) {
+      slipModal = new bootstrap.Modal(document.getElementById('slipModal'));
+    }
+    slipModal.show();
+  }
+
+  function downloadSlipImage() {
+    const slip = document.getElementById('slip-area');
+    if (!slip) return;
+    html2canvas(slip, { scale: 3 }).then(canvas => {
+      const link = document.createElement('a');
+      const r = state.records.find(x => x.id === currentSlipRecordId);
+      const p = r ? state.persons.find(pp => pp.id === r.personId) : null;
+      const namePart = p ? p.name : 'slip';
+      link.download = `slip_${namePart}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
   }
 
   // --------- Init ----------
