@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>สมุดจดหวยออฟไลน์</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="theme-color" content="#0d6efd">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f5f7fb;
+    }
+    .navbar {
+      background: linear-gradient(135deg, #4c6fff, #6b9dff);
+    }
+    .navbar-brand {
+      color: #fff !important;
+      font-weight: 500;
+    }
+    .nav-link {
+      color: #e0e7ff !important;
+    }
+    .card {
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+      border: none;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    .pill {
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mb-3">
+  <div class="container">
+    <a class="navbar-brand" href="#">📒 สมุดจดหวย</a>
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item">
+        <button class="btn btn-sm btn-light me-2" onclick="showSection('people')">รายชื่อ</button>
+      </li>
+      <li class="nav-item">
+        <button class="btn btn-sm btn-light me-2" onclick="showSection('records')">บันทึกเลข</button>
+      </li>
+      <li class="nav-item">
+        <button class="btn btn-sm btn-warning" onclick="showSection('check')">ตรวจรางวัล</button>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container mb-4">
+
+  <!-- ส่วนรายชื่อคน -->
+  <div id="section-people" class="section active">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">รายชื่อผู้จดเลข</h5>
+            <ul id="person-list" class="list-group small"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">เพิ่มรายชื่อใหม่</h5>
+            <form onsubmit="addPerson(event)">
+              <div class="mb-2">
+                <label class="form-label">ชื่อ</label>
+                <input type="text" id="person-name" class="form-control" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">หมายเหตุ</label>
+                <input type="text" id="person-note" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-primary w-100">บันทึก</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ส่วนบันทึกเลข -->
+  <div id="section-records" class="section">
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">บันทึกเลขใหม่</h5>
+            <form onsubmit="addRecord(event)">
+              <div class="mb-2">
+                <label class="form-label">เลือกชื่อ</label>
+                <select id="record-person-id" class="form-select" required></select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">งวดวันที่ (ถ้ามี)</label>
+                <input type="date" id="record-date" class="form-control">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">เลข</label>
+                <input type="text" id="record-number" class="form-control" maxlength="3" placeholder="เช่น 23 หรือ 123" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">จำนวนหลัก</label>
+                <select id="record-digits" class="form-select">
+                  <option value="2">2 ตัว</option>
+                  <option value="3" selected>3 ตัว</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ประเภท</label>
+                <select id="record-bettype" class="form-select">
+                  <option value="บน">บน</option>
+                  <option value="ล่าง">ล่าง</option>
+                  <option value="โต๊ด">โต๊ด</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">หมายเหตุเพิ่ม</label>
+                <input type="text" id="record-remark" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-success w-100 mt-2">บันทึกเลข</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">รายการล่าสุด</h5>
+            <div class="mb-2">
+              <label class="form-label small">เลือกคนเพื่อกรอง</label>
+              <select id="filter-person-id" class="form-select form-select-sm" onchange="renderRecordList()">
+              </select>
+            </div>
+            <div class="table-responsive" style="max-height: 400px; overflow:auto;">
+              <table class="table table-sm align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ชื่อ</th>
+                    <th>งวดวันที่</th>
+                    <th>เลข</th>
+                    <th>หลัก</th>
+                    <th>ประเภท</th>
+                    <th>หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody id="record-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ส่วนตรวจรางวัล -->
+  <div id="section-check" class="section">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">ตรวจรางวัล</h5>
+            <form onsubmit="checkWinners(event)">
+              <div class="mb-2">
+                <label class="form-label">งวดวันที่ (ถ้าต้องการกรอง)</label>
+                <input type="date" id="check-date" class="form-control">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">เลขที่ออก</label>
+                <input type="text" id="check-number" class="form-control" maxlength="3" placeholder="เช่น 23 หรือ 123" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">จำนวนหลัก</label>
+                <select id="check-digits" class="form-select">
+                  <option value="2">2 ตัว</option>
+                  <option value="3" selected>3 ตัว</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ประเภท</label>
+                <select id="check-bettype" class="form-select">
+                  <option value="บน">บน</option>
+                  <option value="ล่าง">ล่าง</option>
+                  <option value="โต๊ด">โต๊ด</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 mt-2">ค้นหาเลขที่ถูก</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card p-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">ผลการค้นหา</h5>
+            <p class="small text-muted" id="check-summary"></p>
+            <div class="table-responsive" style="max-height: 400px; overflow:auto;">
+              <table class="table table-sm align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ชื่อ</th>
+                    <th>งวดวันที่</th>
+                    <th>เลข</th>
+                    <th>หลัก</th>
+                    <th>ประเภท</th>
+                    <th>หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody id="check-result-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // --------- PWA Service Worker Registration ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => {
+        console.log('SW reg error', err);
+      });
+    });
+  }
+
+  // --------- Data State & Storage ----------
+  let state = {
+    persons: [],
+    records: [],
+    nextPersonId: 1,
+    nextRecordId: 1
+  };
+
+  function loadState() {
+    const raw = localStorage.getItem('lottoState');
+    if (raw) {
+      try {
+        const obj = JSON.parse(raw);
+        state = obj;
+      } catch (e) {
+        console.error('load error', e);
+      }
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem('lottoState', JSON.stringify(state));
+  }
+
+  // --------- UI Switch Sections ----------
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+  }
+
+  // --------- Persons ----------
+  function renderPersonList() {
+    const ul = document.getElementById('person-list');
+    ul.innerHTML = '';
+    if (state.persons.length === 0) {
+      ul.innerHTML = '<li class="list-group-item text-muted">ยังไม่มีรายชื่อ</li>';
+      return;
+    }
+    state.persons.forEach(p => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `
+        <div>
+          <strong>${p.name}</strong>
+          ${p.note ? `<div class="small text-muted">${p.note}</div>` : ''}
+        </div>
+        <span class="badge bg-primary pill">
+          ${state.records.filter(r => r.personId === p.id).length} รายการ
+        </span>
+      `;
+      ul.appendChild(li);
+    });
+
+    // dropdowns
+    const selRecord = document.getElementById('record-person-id');
+    const selFilter = document.getElementById('filter-person-id');
+    [selRecord, selFilter].forEach(sel => { sel.innerHTML = ''; });
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'เลือกชื่อ...';
+    selRecord.appendChild(defaultOpt);
+
+    const allOpt = document.createElement('option');
+    allOpt.value = '';
+    allOpt.textContent = 'ทุกคน';
+    selFilter.appendChild(allOpt);
+
+    state.persons.forEach(p => {
+      const o1 = document.createElement('option');
+      o1.value = p.id;
+      o1.textContent = p.name;
+      selRecord.appendChild(o1);
+
+      const o2 = document.createElement('option');
+      o2.value = p.id;
+      o2.textContent = p.name;
+      selFilter.appendChild(o2);
+    });
+  }
+
+  function addPerson(e) {
+    e.preventDefault();
+    const name = document.getElementById('person-name').value.trim();
+    const note = document.getElementById('person-note').value.trim();
+    if (!name) return;
+
+    state.persons.push({
+      id: state.nextPersonId++,
+      name,
+      note
+    });
+    saveState();
+    renderPersonList();
+    document.getElementById('person-name').value = '';
+    document.getElementById('person-note').value = '';
+    alert('บันทึกชื่อเรียบร้อย');
+  }
+
+  // --------- Records ----------
+  function renderRecordList() {
+    const tbody = document.getElementById('record-list');
+    tbody.innerHTML = '';
+    if (state.records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted">ยังไม่มีรายการเลข</td></tr>';
+      return;
+    }
+    const filterId = parseInt(document.getElementById('filter-person-id').value || '0', 10);
+
+    // ล่าสุดมาก่อน
+    const records = [...state.records].sort((a, b) => b.id - a.id);
+
+    records.forEach(r => {
+      if (filterId && r.personId !== filterId) return;
+      const p = state.persons.find(p => p.id === r.personId);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p ? p.name : '-'}</td>
+        <td>${r.drawDate || '-'}</td>
+        <td>${r.number}</td>
+        <td>${r.digits}</td>
+        <td>${r.betType}</td>
+        <td>${r.remark || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addRecord(e) {
+    e.preventDefault();
+    const personId = parseInt(document.getElementById('record-person-id').value || '0', 10);
+    const drawDate = document.getElementById('record-date').value || '';
+    const number = document.getElementById('record-number').value.trim();
+    const digits = parseInt(document.getElementById('record-digits').value, 10);
+    const betType = document.getElementById('record-bettype').value;
+    const remark = document.getElementById('record-remark').value.trim();
+
+    if (!personId) {
+      alert('กรุณาเลือกชื่อ');
+      return;
+    }
+    if (!number) {
+      alert('กรุณากรอกเลข');
+      return;
+    }
+    if (digits === 2 && number.length !== 2) {
+      alert('เลือก 2 ตัว แต่กรอกไม่ครบ 2 หลัก');
+      return;
+    }
+    if (digits === 3 && number.length !== 3) {
+      alert('เลือก 3 ตัว แต่กรอกไม่ครบ 3 หลัก');
+      return;
+    }
+
+    state.records.push({
+      id: state.nextRecordId++,
+      personId,
+      drawDate,
+      number,
+      digits,
+      betType,
+      remark
+    });
+    saveState();
+    renderRecordList();
+    renderPersonList(); // update count
+
+    document.getElementById('record-number').value = '';
+    document.getElementById('record-remark').value = '';
+
+    alert('บันทึกเลขเรียบร้อย');
+  }
+
+  // --------- Check Winners ----------
+  function checkWinners(e) {
+    e.preventDefault();
+    const drawDate = document.getElementById('check-date').value || '';
+    const number = document.getElementById('check-number').value.trim();
+    const digits = parseInt(document.getElementById('check-digits').value, 10);
+    const betType = document.getElementById('check-bettype').value;
+
+    if (!number) {
+      alert('กรุณากรอกเลขที่ออก');
+      return;
+    }
+
+    let results = state.records.filter(r => {
+      if (drawDate && r.drawDate !== drawDate) return false;
+      if (r.digits !== digits) return false;
+      if (r.number !== number) return false;
+      if (r.betType !== betType) return false;
+      return true;
+    });
+
+    const tbody = document.getElementById('check-result-list');
+    tbody.innerHTML = '';
+
+    if (results.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted">ยังไม่มีใครถูกเลขนี้</td></tr>';
+    } else {
+      results.forEach(r => {
+        const p = state.persons.find(p => p.id === r.personId);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="badge bg-success pill">${p ? p.name : '-'}</span></td>
+          <td>${r.drawDate || '-'}</td>
+          <td><strong>${r.number}</strong></td>
+          <td>${r.digits}</td>
+          <td>${r.betType}</td>
+          <td>${r.remark || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const summary = document.getElementById('check-summary');
+    summary.textContent = `เลขที่ออก: ${number} (${digits} ตัว, ${betType}) ` +
+      (drawDate ? `งวดวันที่ ${drawDate}` : '');
+  }
+
+  // --------- Init ----------
+  loadState();
+  renderPersonList();
+  renderRecordList();
+</script>
+
+</body>
+</html>
